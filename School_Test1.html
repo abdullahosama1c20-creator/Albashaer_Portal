@@ -1,1 +1,1949 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Albashaer School — Accessible Demo</title>
+<style>
+    :root{
+        --bg:#f7f9fb; --card:#fff; --muted:#6b7280; --accent:#4f46e5; --accent-2:#06b6d4;
+        --radius:14px; font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        --ease: cubic-bezier(.16,.84,.44,1);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+        margin:0; background:linear-gradient(180deg,var(--bg),#fff); color:#0f172a;
+        -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+        font-size:16px; line-height:1.4;
+    }
+
+    /* Layout */
+    .app{display:grid; grid-template-columns:260px 1fr; min-height:100vh; gap:24px; padding:20px;}
+    header.top{grid-column:1/-1; display:flex;align-items:center;justify-content:space-between; gap:12px; padding:8px 18px; margin-bottom:8px}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:700;color:var(--accent)}
+    .logo{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;color:#fff;font-weight:800}
+    nav.sidebar{background:var(--card); border-radius:14px; padding:18px; box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+    nav.sidebar a{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;color:var(--muted);text-decoration:none;margin-bottom:6px}
+    nav.sidebar a[aria-current="true"]{background:linear-gradient(90deg,#eef2ff,#f0f9ff);color:var(--accent);box-shadow:0 6px 14px rgba(79,70,229,0.06)}
+    main.view{padding:20px}
+    .page{background:var(--card);padding:20px;border-radius:14px;min-height:60vh; box-shadow:0 6px 20px rgba(2,6,23,0.04); transition:transform .36s var(--ease),opacity .36s var(--ease);transform-origin:top left}
+    .page.enter{opacity:0; transform:translateY(8px)}
+    .page.enter-active{opacity:1; transform:translateY(0)}
+    .header-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+    h1{font-size:1.25rem;margin:0}
+    .muted{color:var(--muted);font-size:.95rem}
+
+    /* Subjects */
+    .subjects{display:flex;flex-wrap:wrap;gap:14px}
+    /* subject card wrapper for consistent layout */
+    .subject-card{display:flex;flex-direction:column;align-items:flex-start;width:220px}
+    .subject-controls{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:8px}
+    .teacher-list{font-size:.9rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px}
+    .tile{width:220px;height:110px;border-radius:16px;background:linear-gradient(180deg,#fff,#fbfdff);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:6px;padding:12px;border:1px solid rgba(79,70,229,0.06);cursor:pointer;transition:transform .22s var(--ease),box-shadow .22s var(--ease);box-shadow:0 6px 20px rgba(15,23,42,0.03)}
+    .tile:focus,.tile:hover{transform:translateY(-6px) scale(1.02);outline:none;box-shadow:0 18px 40px rgba(15,23,42,0.06)}
+    .tile .icon{font-size:20px}
+    .tile .name{font-weight:700;color:#0f172a;font-size:1rem}
+    .tile .meta{color:var(--muted);font-size:.9rem;margin-top:6px}
+
+    /* Posts */
+    .posts{display:flex;flex-direction:column;gap:12px}
+    .post{border-radius:12px;padding:12px;background:linear-gradient(180deg,#fff,#fcfeff);border:1px solid rgba(6,182,212,0.06);transition:transform .16s var(--ease)}
+    .post.important{border-color:#dc2626; box-shadow:0 10px 36px rgba(220,38,38,0.06); background:linear-gradient(180deg,#fff7f7,#fffcfb)}
+    .post:hover{transform:translateY(-4px)}
+    .post .meta{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.9rem;margin-bottom:8px}
+    .important-badge{display:inline-block;background:#dc2626;color:#fff;padding:4px 8px;border-radius:8px;font-size:.8rem;margin-left:8px}
+    .btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
+    .btn.secondary{background:#eef2ff;color:var(--accent)}
+    .form-row{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+    input,textarea,select{padding:10px;border-radius:8px;border:1px solid #e6edf3;font-size:1rem}
+    textarea{min-height:100px;resize:vertical}
+    .flex{display:flex;gap:12px;align-items:center}
+    .spacer{flex:1}
+
+    .files-list{display:flex;flex-direction:column;gap:12px}
+    .file-row{display:flex;align-items:flex-start;gap:12px;padding:12px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid rgba(6,182,212,0.06)}
+    .file-meta{flex:1}
+    .file-actions{display:flex;gap:8px;align-items:center}
+
+    table.grid{width:100%;border-collapse:collapse}
+    table.grid th, table.grid td{padding:8px;border-bottom:1px solid #eee;text-align:left}
+    .small-muted{font-size:.9rem;color:var(--muted)}
+
+    /* accessibility helpers */
+    a.skip{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
+    a.skip:focus{left:8px;top:8px;width:auto;height:auto;padding:8px;background:#111;color:#fff;border-radius:6px;text-decoration:none}
+    .visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap}
+
+    /* dialogs */
+    .dialog-back{position:fixed;inset:0;background:rgba(2,6,23,0.4);display:grid;place-items:center;z-index:100;animation:fade .18s var(--ease)}
+    .dialog{background:var(--card);padding:18px;border-radius:12px;min-width:320px;box-shadow:0 20px 60px rgba(2,6,23,0.2)}
+    @keyframes fade{from{opacity:0}to{opacity:1}}
+
+    /* page fade overlay for smooth nav */
+    .page-fade {
+        position:fixed; inset:0; pointer-events:none;
+        background: linear-gradient(180deg, rgba(2,6,23,0.0), rgba(2,6,23,0.6));
+        opacity:0; transition:opacity .42s var(--ease);
+        z-index:9999;
+    }
+    .page-fade.visible { opacity:1; pointer-events:auto; }
+
+    /* top-right toast notifications */
+    #toastContainer{
+        position:fixed; top:18px; right:18px; display:flex; flex-direction:column; gap:10px; z-index:10000;
+        pointer-events:none;
+    }
+    .toast{
+        pointer-events:auto;
+        background:linear-gradient(90deg,var(--accent),var(--accent-2));
+        color:#021; padding:10px 14px; border-radius:10px; box-shadow:0 12px 40px rgba(7,22,40,0.12);
+        transform:translateY(-6px); opacity:0; transition:transform .32s var(--ease), opacity .32s var(--ease);
+        min-width:220px; max-width:360px; font-weight:600;
+    }
+    .toast.show{ transform:none; opacity:1; }
+
+    /* small screen */
+    @media (max-width:880px){
+        .app{grid-template-columns:1fr; padding:12px}
+        nav.sidebar{order:2}
+        header.top{flex-direction:column;align-items:flex-start}
+        #toastContainer{right:12px; left:12px; top:auto; bottom:12px; align-items:flex-end;}
+    }
+</style>
+</head>
+<body>
+    <body>
+  <div id="app">Loading...</div>
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof initApp === 'function') {
+        
+        initApp(); // call your main initialization function
+      }
+    });
+  </script>
+</body>
+
+    
+<a href="#main" class="skip">Skip to content</a>
+<div class="page-fade" id="pageFade" aria-hidden="true"></div>
+
+<div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<div class="app" id="app" aria-live="polite">
+    <header class="top" role="banner" aria-label="Top bar">
+        <div class="brand" aria-hidden="false">
+            <div class="logo" aria-hidden="true">AS</div>
+            <div>
+                <div style="font-size:.95rem">Albashaer School</div>
+                <div class="muted" style="font-size:.78rem">Accessible portal demo</div>
+            </div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+            <div id="currentUserLabel" class="muted" aria-live="polite">Not signed in</div>
+            <button id="createAccountBtn" class="btn secondary" aria-haspopup="dialog">Create account</button>
+            <button id="loginBtn" class="btn" aria-haspopup="dialog">Sign in</button>
+        </div>
+    </header>
+
+    <nav class="sidebar" role="navigation" aria-label="Main navigation">
+        <a id="nav-home" href="#home" data-route="home" aria-current="false">🏠 Home</a>
+        <a id="nav-profile" href="#profile" data-route="profile" aria-current="false">👤 Profile</a>
+        <a id="nav-subjects" href="#subjects" data-route="subjects" aria-current="false">📚 Subjects</a>
+        <a id="nav-posts" href="#posts" data-route="posts" aria-current="false">✉️ Announcements</a>
+        <a id="nav-dashboard" href="#dashboard" data-route="dashboard" aria-current="false">📊 Dashboard</a>
+        <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(15,23,42,0.04),transparent);margin:12px 0"></div>
+        <a id="nav-admin" href="#admin" data-route="admin" aria-current="false">⚙️ Administration</a>
+        <div style="margin-top:12px" class="muted">Tip: Use Tab to navigate. Press Enter to activate.</div>
+    </nav>
+
+    <main id="main" class="view" role="main" tabindex="-1">
+        <!-- Views will render here -->
+    </main>
+</div>
+
+<!-- Templates (kept simple) -->
+<template id="home-tmpl">
+    <section class="page" role="region" aria-labelledby="homeTitle">
+        <div class="header-row">
+            <h1 id="homeTitle">Welcome</h1>
+            <div class="muted">Quick access to subjects and news</div>
+        </div>
+
+        <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">
+            <div style="flex:1;min-width:320px">
+                <h2>Quick links</h2>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+                    <button class="tile" data-route="class-files" data-target="class-files" aria-controls="class-files" title="Class files"><div class="icon">📁</div><div class="name">Class files</div></button>
+                    <button class="tile" data-route="teachers-notes" data-target="teachers-notes" aria-controls="teachers-notes" title="Teacher's notes"><div class="icon">📝</div><div class="name">Teacher's notes</div></button>
+                    <button class="tile" data-route="assignments" data-target="assignments" aria-controls="assignments" title="Assignments"><div class="icon">🗂️</div><div class="name">Assignments</div></button>
+                    <button class="tile" data-route="schedule" data-target="schedule" aria-controls="schedule" title="Schedule"><div class="icon">📅</div><div class="name">Schedule</div></button>
+                    <button class="tile" data-route="resources" data-target="resources" aria-controls="resources" title="Resources"><div class="icon">🔗</div><div class="name">Resources</div></button>
+                    <button class="tile" data-route="grades" data-target="grades" aria-controls="grades" title="Grades"><div class="icon">📊</div><div class="name">Grades</div></button>
+                </div>
+
+                <div style="margin-top:18px">
+                    <h3 class="muted" style="margin:0 0 8px 0">Recent announcements (toast)</h3>
+                    <div class="muted" style="font-size:.95rem">You will be notified only for new announcements since your last visit.</div>
+                </div>
+            </div>
+
+            <aside style="width:320px;min-width:240px">
+                <div class="page" style="padding:12px;margin-bottom:12px">
+                    <strong>Next class</strong>
+                    <div class="muted" style="margin-top:8px">Math — Monday 09:00</div>
+                </div>
+
+                <div class="page" style="padding:12px">
+                    <strong>Help</strong>
+                    <div class="muted" style="margin-top:8px">Click a tile to open a full page for that section.</div>
+                </div>
+            </aside>
+        </div>
+
+        <p class="muted" style="margin-top:18px">This demo is client-side only. Accounts and posts are stored in your browser (localStorage).</p>
+    </section>
+</template>
+
+<!-- updated class-files template: includes subject select -->
+<template id="class-files-tmpl">
+    <section class="page" role="region" aria-labelledby="filesTitle">
+        <div class="header-row">
+            <h1 id="filesTitle">Class Files</h1>
+            <div class="muted">All uploaded materials</div>
+        </div>
+
+        <div id="uploadArea" style="margin-bottom:12px; display:none">
+            <form id="uploadForm" class="post" aria-label="Upload class file">
+                <div class="form-row"><label for="fileTitle">Title</label><input id="fileTitle" required /></div>
+                <div class="form-row"><label for="fileDesc">Description</label><input id="fileDesc" /></div>
+                <div class="form-row"><label for="fileSubject">Subject</label>
+                    <select id="fileSubject"></select>
+                </div>
+                <div class="form-row"><label for="fileInput">File</label><input id="fileInput" type="file" accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xlsx,.png,.jpg" required /></div>
+                <div style="display:flex;gap:8px"><button class="btn" type="submit">Upload</button><button id="cancelUpload" type="button" class="btn secondary">Cancel</button></div>
+            </form>
+        </div>
+
+        <div class="files-list" id="classFilesList"></div>
+    </section>
+</template>
+
+<template id="teachers-notes-tmpl">
+    <section class="page" role="region" aria-labelledby="tnTitle">
+        <div class="header-row">
+            <h1 id="tnTitle">Teacher's Notes</h1>
+            <div class="muted">Lesson plans and guidance</div>
+        </div>
+        <div class="files-list" id="teachersNotesList"></div>
+    </section>
+</template>
+
+<template id="assignments-tmpl">
+    <section class="page" role="region" aria-labelledby="assignTitle">
+        <div class="header-row">
+            <h1 id="assignTitle">Assignments</h1>
+            <div class="muted">Submitted and pending tasks</div>
+        </div>
+        <div id="assignmentsList" class="files-list"></div>
+    </section>
+</template>
+
+<template id="schedule-tmpl">
+    <section class="page" role="region" aria-labelledby="schedTitle">
+        <div class="header-row">
+            <h1 id="schedTitle">Schedule</h1>
+            <div class="muted">Weekly timetable</div>
+        </div>
+        <pre class="muted" id="scheduleBlock"></pre>
+    </section>
+</template>
+
+<template id="resources-tmpl">
+    <section class="page" role="region" aria-labelledby="resTitle">
+        <div class="header-row">
+            <h1 id="resTitle">Resources</h1>
+            <div class="muted">Helpful links and videos</div>
+        </div>
+
+        <!-- teacher/host can add a resource (video or link) -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div class="spacer"></div>
+            <button id="newResourceBtn" class="btn secondary" style="display:none">Add resource</button>
+        </div>
+
+        <div id="newResourceArea" style="display:none;margin-bottom:12px">
+            <form id="resourceForm" class="post" aria-label="New resource form">
+                <div class="form-row"><label for="resTitle">Title</label><input id="resTitle" required /></div>
+                <div class="form-row"><label for="resUrl">URL (link or video)</label><input id="resUrl" placeholder="https://..." required /></div>
+                <div class="form-row"><label for="resType">Type</label>
+                    <select id="resType"><option value="link">Link</option><option value="video">Video</option></select>
+                </div>
+                <div class="form-row"><label for="resDesc">Description (optional)</label><input id="resDesc" /></div>
+                <div style="display:flex;gap:8px"><button class="btn" type="submit">Publish</button><button id="cancelResource" type="button" class="btn secondary">Cancel</button></div>
+            </form>
+        </div>
+
+        <div id="resourcesList" class="files-list"></div>
+    </section>
+</template>
+
+<template id="profile-tmpl">
+    <section class="page" role="region" aria-labelledby="profileTitle">
+        <div class="header-row">
+            <h1 id="profileTitle">Profile</h1>
+            <div class="muted">Manage your account</div>
+        </div>
+
+        <div style="max-width:640px">
+            <form id="profileForm">
+                <div class="form-row">
+                    <label for="profUsername">Username</label>
+                    <input id="profUsername" readonly />
+                </div>
+                <div class="form-row">
+                    <label for="profName">Display name</label>
+                    <input id="profName" />
+                </div>
+                <div class="form-row">
+                    <label for="profRole">Role</label>
+                    <input id="profRole" readonly />
+                </div>
+
+                <div class="form-row">
+                    <label for="profCurrentPassword">Current password (required to change)</label>
+                    <input id="profCurrentPassword" type="password" />
+                </div>
+                <div class="form-row">
+                    <label for="profPassword">New password (leave blank to keep)</label>
+                    <input id="profPassword" type="password" />
+                    <div id="profPassStrength" class="small-muted" aria-live="polite"></div>
+                </div>
+                <div class="form-row">
+                    <label for="profPasswordConfirm">Confirm new password</label>
+                    <input id="profPasswordConfirm" type="password" />
+                </div>
+
+                <div style="display:flex;gap:8px;align-items:center">
+                    <button class="btn" type="submit">Save</button>
+                    <button id="profSignOut" type="button" class="btn secondary">Sign out</button>
+                    <div class="spacer"></div>
+                </div>
+                <div class="muted" style="margin-top:8px;font-size:.95rem">Host accounts are not revealed in lists.</div>
+            </form>
+        </div>
+    </section>
+</template>
+
+<template id="subjects-tmpl">
+    <section class="page" role="region" aria-labelledby="subjectsTitle">
+        <div class="header-row">
+            <h1 id="subjectsTitle">Subjects</h1>
+            <div class="muted">Accessible subject tiles with smooth hover and focus</div>
+        </div>
+        <div class="subjects" role="list" aria-label="Subjects list"></div>
+    </section>
+</template>
+
+<template id="posts-tmpl">
+    <section class="page" role="region" aria-labelledby="postsTitle">
+        <div class="header-row">
+            <h1 id="postsTitle">Announcements</h1>
+            <div class="flex"><div class="muted" id="postsRoleHint"></div><div class="spacer"></div><button id="newPostBtn" class="btn secondary">New post</button></div>
+        </div>
+        <div id="newPostArea" style="display:none;margin-bottom:12px">
+            <form id="postForm" class="post" aria-label="New announcement form">
+                <div class="form-row"><label for="postTitle">Title</label><input id="postTitle" required /></div>
+                <div class="form-row"><label for="postBody">Message</label><textarea id="postBody" required></textarea></div>
+                <div style="display:flex;gap:8px"><button class="btn" type="submit">Publish</button><button id="cancelPost" type="button" class="btn secondary">Cancel</button></div>
+            </form>
+        </div>
+        <div class="posts" id="postsList" aria-live="polite"></div>
+    </section>
+</template>
+
+<template id="dashboard-tmpl">
+    <section class="page" role="region" aria-labelledby="dashTitle">
+        <div class="header-row"><h1 id="dashTitle">Dashboard</h1><div class="muted">Personalized view</div></div>
+        <div id="dashContent"></div>
+    </section>
+</template>
+
+<template id="admin-tmpl">
+    <section class="page" role="region" aria-labelledby="adminTitle">
+        <div class="header-row"><h1 id="adminTitle">Administration</h1><div class="muted">Host controls for managing users</div></div>
+        <div id="adminArea"></div>
+    </section>
+</template>
+
+<template id="subject-tmpl">
+    <section class="page" role="region" aria-labelledby="subjectTitle">
+        <div class="header-row">
+            <h1 id="subjectTitle">Subject</h1>
+            <div class="muted" id="subjectHint">Subject details</div>
+        </div>
+
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+            <div style="flex:1;min-width:360px">
+                <div class="page" style="padding:12px;margin-bottom:12px">
+                    <strong id="subjectName">Subject</strong>
+                    <div class="small-muted" id="subjectTeachersList" style="margin-top:8px">Teachers:</div>
+                </div>
+
+                <div class="page" style="padding:12px;margin-bottom:12px">
+                    <strong>Class Files</strong>
+                    <div id="subjectFiles" style="margin-top:8px"></div>
+                </div>
+
+                <div class="page" style="padding:12px">
+                    <strong>Grades (subject)</strong>
+                    <div id="subjectGrades" style="margin-top:8px"></div>
+                </div>
+            </div>
+
+            <aside style="width:320px;min-width:240px">
+                <div class="page" style="padding:12px;margin-bottom:12px">
+                    <strong>Quick actions</strong>
+                    <div class="muted" style="margin-top:8px" id="subjectActions"></div>
+                </div>
+
+                <div class="page" style="padding:12px">
+                    <strong>Info</strong>
+                    <div class="muted" style="margin-top:8px">Hosts can assign teachers to this subject.</div>
+                </div>
+            </aside>
+        </div>
+    </section>
+</template>
+
+<!-- Login Dialog (no host credentials shown) -->
+<div id="loginDialogWrap" style="display:none">
+    <div class="dialog-back" id="loginDialog" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <div class="dialog">
+            <h2 id="loginTitle" style="margin:0 0 8px 0">Sign in</h2>
+            <form id="loginForm">
+                <div class="form-row"><label for="username">Username</label><input id="username" autocomplete="username" required /></div>
+                <div class="form-row"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required /></div>
+                <div class="small-muted" id="loginHelp" style="margin-top:6px"></div>
+                <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:6px">
+                    <button class="btn" type="submit">Sign in</button>
+                    <button id="loginClose" type="button" class="btn secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Register Dialog -->
+<div id="registerDialogWrap" style="display:none">
+    <div class="dialog-back" id="registerDialog" role="dialog" aria-modal="true" aria-labelledby="registerTitle">
+        <div class="dialog">
+            <h2 id="registerTitle" style="margin:0 0 8px 0">Create account</h2>
+            <form id="registerForm">
+                <div class="form-row"><label for="regUsername">Username</label><input id="regUsername" required /></div>
+                <div class="form-row"><label for="regName">Display name</label><input id="regName" placeholder="Your full name" /></div>
+                <div class="form-row"><label for="regPassword">Password</label><input id="regPassword" type="password" required /></div>
+                <div class="small-muted" id="regPassStrength"></div>
+                <div class="form-row"><label for="regPassword2">Confirm password</label><input id="regPassword2" type="password" required /></div>
+                <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:6px">
+                    <button class="btn" type="submit">Create</button>
+                    <button id="registerClose" type="button" class="btn secondary">Cancel</button>
+                </div>
+            </form>
+            <div style="margin-top:8px;font-size:.9rem;color:var(--muted)">Accounts are local to your browser for this demo. Created accounts default to "student".</div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* Complete working demo (plaintext auth; teachers/hosts can post resources: links and videos).
+   This version restores a consistent script order and keeps authentication plaintext
+   to avoid the earlier hashing-related issues reported.
+*/
+
+/* -- Utilities for storage and init -- */
+const STORAGE_KEY = 'albashaer_demo_v1';
+const LAST_ROUTE_KEY = 'albashaer_last_route';
+
+
+
+  const state = { users:{}, posts:[], current:null, classFiles:[], teachersNotes:[], assignments:[], resources:[], grades:[], subjectTeachers:{}, teacherApplications:[] };
+let hiddenHostUsernames = new Set();
+let modalOpen = false;
+let activeTrap = null;
+
+function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ console.warn('Could not save state', e); } }
+function loadState(){
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+        try{
+            const parsed = JSON.parse(raw);
+            Object.assign(state, parsed);
+        }catch(e){
+            Object.assign(state, JSON.parse(JSON.stringify(defaultState)));
+        }
+    } else {
+        Object.assign(state, JSON.parse(JSON.stringify(defaultState)));
+        saveState();
+    }
+    // ensure lists present
+    state.classFiles = state.classFiles || defaultState.classFiles;
+    state.teachersNotes = state.teachersNotes || defaultState.teachersNotes;
+    state.assignments = state.assignments || defaultState.assignments;
+    state.resources = state.resources || defaultState.resources;
+    state.grades = state.grades || defaultState.grades;
+    state.users = state.users || defaultState.users;
+    state.posts = state.posts || defaultState.posts;
+    state.subjectTeachers = state.subjectTeachers || defaultState.subjectTeachers;
+    state.teacherApplications = state.teacherApplications || defaultState.teacherApplications;
+    Object.keys(state.users).forEach(u=> {
+        if(!state.users[u].name) state.users[u].name = u;
+        if(typeof state.users[u].lastSeenPostTime === 'undefined') state.users[u].lastSeenPostTime = 0;
+        if(!Array.isArray(state.users[u].subjects)) state.users[u].subjects = [];
+    });
+    hiddenHostUsernames = new Set(Object.keys(state.users).filter(u=>state.users[u].role === 'host'));
+}
+loadState();
+
+function ensureUserSubjects(){
+    Object.keys(state.users || {}).forEach(u=> state.users[u].subjects = []);
+    Object.keys(state.subjectTeachers || {}).forEach(sub=>{
+        (state.subjectTeachers[sub]||[]).forEach(u=>{
+            if(state.users[u]){
+                state.users[u].subjects = state.users[u].subjects || [];
+                if(!state.users[u].subjects.includes(sub)) state.users[u].subjects.push(sub);
+            }
+        });
+    });
+}
+ensureUserSubjects();
+
+/* -- Utilities & helpers -- */
+const main = document.getElementById('main');
+
+const templates = {
+    home: 'home-tmpl',
+    profile: 'profile-tmpl',
+    subjects: 'subjects-tmpl',
+    posts: 'posts-tmpl',
+    dashboard: 'dashboard-tmpl',
+    admin: 'admin-tmpl',
+    'class-files': 'class-files-tmpl',
+    'teachers-notes': 'teachers-notes-tmpl',
+    assignments: 'assignments-tmpl',
+    schedule: 'schedule-tmpl',
+    resources: 'resources-tmpl',
+    grades: 'grades-tmpl',
+    subject: 'subject-tmpl'
+};
+
+function getTemplateContentByRoute(route){
+    const id = templates[route] || templates.home;
+    const el = document.getElementById(id);
+    if(!el){
+        console.warn('Missing template element:', id);
+        const frag = document.createDocumentFragment();
+        const div = document.createElement('div');
+        div.className = 'page';
+        div.textContent = 'Template not found: ' + id;
+        frag.appendChild(div);
+        return frag;
+    }
+    return el.content;
+}
+
+function escapeHtml(s=''){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
+function uid(){ return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,8); }
+
+function setCurrentUserLabel(){
+    const lbl = document.getElementById('currentUserLabel');
+    if(!lbl) return;
+    if(state.current){
+        lbl.textContent = `${state.current.name} (${state.current.role})`;
+        const loginBtn = document.getElementById('loginBtn');
+        if(loginBtn) loginBtn.textContent = 'Sign out';
+    } else {
+        lbl.textContent = 'Not signed in';
+        const loginBtn = document.getElementById('loginBtn');
+        if(loginBtn) loginBtn.textContent = 'Sign in';
+    }
+}
+
+function canManageFiles(){ return state.current && (state.current.role === 'teacher' || state.current.role === 'host'); }
+function canEditGrades(){ return state.current && (state.current.role === 'teacher' || state.current.role === 'host'); }
+function isHost(){ return state.current && state.current.role === 'host'; }
+function canPost(){ return state.current && (state.current.role === 'teacher' || state.current.role === 'host'); }
+
+/* router helpers */
+function navigate(route){
+    try{
+        if(!route) route = 'home';
+        localStorage.setItem(LAST_ROUTE_KEY, route);
+        location.hash = '#' + route;
+    }catch(e){ console.warn(e); }
+}
+
+function navigateWithFade(route){
+    if(modalOpen){ showToast('Close the open dialog first'); return; }
+    const pageFade = document.getElementById('pageFade');
+    if(pageFade) pageFade.classList.add('visible');
+    setTimeout(()=> {
+        navigate(route);
+        setTimeout(()=> { if(pageFade) pageFade.classList.remove('visible'); }, 300);
+    }, 160);
+}
+
+function getInitialRoute(){
+    const h = (location.hash || '').replace('#','');
+    if(h) return h;
+    const last = localStorage.getItem(LAST_ROUTE_KEY);
+    return last || 'home';
+}
+
+/* toast */
+const toastContainer = document.getElementById('toastContainer');
+function showToast(text, timeout = 3500){
+    if(!toastContainer) return;
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = text;
+    toastContainer.appendChild(t);
+    requestAnimationFrame(()=> t.classList.add('show'));
+    const id = setTimeout(()=> {
+        t.classList.remove('show');
+        setTimeout(()=> t.remove(), 300);
+    }, timeout);
+    t.addEventListener('click', ()=> { clearTimeout(id); t.classList.remove('show'); setTimeout(()=> t.remove(), 220); });
+}
+
+/* focus trap for modals */
+function trapFocus(root){
+    if(!root) return null;
+    const focusable = [...root.querySelectorAll('a[href], button, textarea, input, select')].filter(n => !n.hasAttribute('disabled') && n.offsetParent !== null);
+    if(focusable.length === 0) return null;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    function onKey(e){
+        if(e.key !== 'Tab') return;
+        if(e.shiftKey && document.activeElement === first){
+            e.preventDefault();
+            last.focus();
+        } else if(!e.shiftKey && document.activeElement === last){
+            e.preventDefault();
+            first.focus();
+        }
+    }
+    document.addEventListener('keydown', onKey);
+    first.focus();
+    return ()=> document.removeEventListener('keydown', onKey);
+}
+
+/* password verification (plaintext; restored) */
+function verifyPasswordPlain(username, suppliedPassword){
+    const stored = state.users?.[username]?.password;
+    return typeof stored !== 'undefined' && suppliedPassword === stored;
+}
+
+/* subjects list */
+const subjectsList = [
+    {id:'biology', name:'Biology', icon:'🧬'},
+    {id:'physics', name:'Physics', icon:'⚛️'},
+    {id:'chem', name:'Chemistry', icon:'⚗️'},
+    {id:'computer', name:'Computer', icon:'💻'},
+    {id:'math', name:'Math', icon:'🧮'},
+    {id:'english', name:'English', icon:'📘'},
+    {id:'arabic', name:'Arabic', icon:'📝'},
+    {id:'religion', name:'Religion', icon:'🕌'}
+];
+
+/* render orchestrator */
+function render(){
+    const raw = getInitialRoute();
+    const parts = raw.split('/');
+    const route = parts[0] || 'home';
+    const param = parts.slice(1).join('/') || null;
+
+    document.querySelectorAll('nav.sidebar a').forEach(a=>{
+        a.setAttribute('aria-current', a.dataset.route === route ? 'true' : 'false');
+    });
+
+    main.innerHTML = '';
+    const node = document.importNode(getTemplateContentByRoute(route), true);
+    const page = node.querySelector('.page');
+    if(page){
+        page.classList.add('enter');
+        requestAnimationFrame(()=> page.classList.add('enter-active'));
+    }
+    main.appendChild(node);
+
+    if(route === 'home') renderHome();
+    else if(route === 'profile') renderProfile();
+    else if(route === 'subjects') renderSubjects();
+    else if(route === 'posts') renderPosts();
+    else if(route === 'dashboard') renderDashboard();
+    else if(route === 'admin') renderAdmin();
+    else if(route === 'class-files') renderClassFiles(param);
+    else if(route === 'teachers-notes') renderTeachersNotes();
+    else if(route === 'assignments') renderAssignments();
+    else if(route === 'schedule') renderSchedule();
+    else if(route === 'resources') renderResources();
+    else if(route === 'grades') renderGrades();
+    else if(route === 'subject' && param) renderSubject(param);
+
+    setCurrentUserLabel();
+    main.focus();
+}
+
+/* quick helpers for posts */
+function getUnseenPostsForUser(username){
+    if(!username || !state.users[username]) return [];
+    const last = state.users[username].lastSeenPostTime || 0;
+    return (state.posts || []).filter(p => p.time > last).sort((a,b)=>b.time-a.time);
+}
+function markPostsSeenForUser(username){
+    if(!username || !state.users[username]) return;
+    state.users[username].lastSeenPostTime = Date.now();
+    saveState();
+}
+
+/* render pages */
+function renderHome(){
+    if(state.current){
+        const unseen = getUnseenPostsForUser(state.current.username);
+        if(unseen && unseen.length){
+            const newest = unseen[0];
+            const txt = (newest.important ? 'IMPORTANT: ' : '') + `${newest.title} — ${newest.body}`;
+            showToast(txt, newest.important ? 7000 : 4000);
+            markPostsSeenForUser(state.current.username);
+        }
+    }
+
+    main.querySelectorAll('.tile').forEach(t=>{
+        t.setAttribute('tabindex','0');
+        t.onkeydown = (e)=> { if(e.key==='Enter' || e.key===' ') { e.preventDefault(); t.click(); } };
+        t.onclick = ()=> {
+            if(modalOpen){ showToast('Close the dialog first'); return; }
+            const route = t.getAttribute('data-route') || t.getAttribute('data-target');
+            if(route) navigateWithFade(route);
+        };
+    });
+}
+
+function renderClassFiles(subjectFilter){
+    const uploadArea = main.querySelector('#uploadArea');
+    const uploadForm = main.querySelector('#uploadForm');
+    const cancelUpload = main.querySelector('#cancelUpload');
+    const fileSubjectSelect = main.querySelector('#fileSubject');
+
+    if(fileSubjectSelect){
+        fileSubjectSelect.innerHTML = subjectsList.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+        if(subjectFilter) fileSubjectSelect.value = subjectFilter;
+    }
+
+    if(canManageFiles()){
+        if(uploadArea) uploadArea.style.display = '';
+    } else {
+        if(uploadArea) uploadArea.style.display = 'none';
+    }
+
+    const classFilesList = main.querySelector('#classFilesList');
+    if(classFilesList) classFilesList.innerHTML = '';
+    const filesToShow = (state.classFiles || []).slice().reverse().filter(f => !subjectFilter || f.subject === subjectFilter);
+
+    filesToShow.forEach(f=>{
+        const row = document.createElement('div');
+        row.className = 'file-row';
+        row.innerHTML = `<div class="file-meta">
+            <div style="font-weight:700">${escapeHtml(f.title)}</div>
+            <div class="small-muted">${escapeHtml(f.author)} • ${escapeHtml(f.date)} • ${escapeHtml((subjectsList.find(x=>x.id===f.subject)||{name:'General'}).name)}</div>
+            <div class="small-muted" style="margin-top:8px">${escapeHtml(f.description || '')}</div>
+            <div class="small-muted" style="margin-top:6px">File: ${escapeHtml(f.filename || '—')}</div>
+        </div>
+        <div class="file-actions">
+            <button class="btn" data-open="${f.id}">Open</button>
+            <button class="btn secondary" data-download="${f.id}">Download</button>
+            ${canManageFiles() ? `<button class="btn secondary" data-delete="${f.id}">Delete</button>` : ''}
+        </div>`;
+        if(classFilesList) classFilesList.appendChild(row);
+
+        row.querySelector('[data-open]')?.addEventListener('click', ()=>{
+            const stored = state.classFiles.find(x=>x.id==f.id);
+            if(stored && stored.content){
+                const w = window.open(stored.content, '_blank');
+                if(!w) showToast('Popup blocked — download instead');
+            } else {
+                showToast('No preview available. Use Download.');
+            }
+        });
+        row.querySelector('[data-download]')?.addEventListener('click', ()=>{
+            const stored = state.classFiles.find(x=>x.id==f.id);
+            if(stored && stored.content){
+                const a = document.createElement('a');
+                a.href = stored.content;
+                a.download = stored.filename || 'file';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } else {
+                alert('Demo download: ' + f.title);
+            }
+        });
+        row.querySelector('[data-delete]')?.addEventListener('click', ()=>{
+            if(!confirm('Delete file "'+f.title+'"?')) return;
+            const idx = state.classFiles.findIndex(x=>x.id==f.id);
+            if(idx>=0){ state.classFiles.splice(idx,1); saveState(); renderClassFiles(subjectFilter); showToast('File deleted'); }
+        });
+    });
+
+    if(uploadForm){
+        uploadForm.onsubmit = (e)=>{
+            e.preventDefault();
+            if(!canManageFiles()){ alert('Permission denied'); return; }
+            const title = document.getElementById('fileTitle').value.trim();
+            const desc = document.getElementById('fileDesc').value.trim();
+            const subject = document.getElementById('fileSubject').value;
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files && fileInput.files[0];
+            if(!title || !file){ alert('Provide title and file'); return; }
+
+            const reader = new FileReader();
+            reader.onload = function(ev){
+                const content = ev.target.result;
+                const entry = { id: uid(), subject: subject || null, title, author: state.current ? state.current.name : 'Unknown', date: new Date().toISOString().split('T')[0], description: desc, filename: file.name, content };
+                state.classFiles.push(entry);
+                saveState();
+                uploadForm.reset();
+                renderClassFiles(subjectFilter);
+                showToast('File uploaded');
+            };
+            reader.readAsDataURL(file);
+        };
+        cancelUpload.onclick = ()=> uploadForm.reset();
+    }
+}
+
+function renderTeachersNotes(){
+    const list = main.querySelector('#teachersNotesList');
+    if(!list) return;
+    list.innerHTML = '';
+    (state.teachersNotes || []).slice().reverse().forEach(n=>{
+        const row = document.createElement('div');
+        row.className = 'file-row';
+        row.innerHTML = `<div class="file-meta">
+            <div style="font-weight:700">${escapeHtml(n.title)}</div>
+            <div class="small-muted">${escapeHtml(n.author)} • ${escapeHtml(n.date)}</div>
+            <div class="small-muted" style="margin-top:8px">${escapeHtml(n.description || '')}</div>
+        </div>
+        <div class="file-actions">
+            <button class="btn" data-open="${n.id}">Open</button>
+        </div>`;
+        list.appendChild(row);
+        row.querySelector('[data-open]')?.addEventListener('click', ()=> showToast(`Opened: ${n.title}`));
+    });
+}
+
+function renderAssignments(){
+    const list = main.querySelector('#assignmentsList');
+    if(!list) return;
+    list.innerHTML = '';
+    (state.assignments || []).slice().reverse().forEach(a=>{
+        const row = document.createElement('div');
+        row.className = 'file-row';
+        row.innerHTML = `<div class="file-meta">
+            <div style="font-weight:700">${escapeHtml(a.title)}</div>
+            <div class="small-muted">${escapeHtml(a.author)} • ${escapeHtml(a.date)}</div>
+            <div class="small-muted" style="margin-top:8px">Status: ${escapeHtml(a.status)}</div>
+        </div>
+        <div class="file-actions">
+            ${canManageFiles() ? `<button class="btn" data-mark="${a.id}">${a.status==='pending'?'Mark done':'Reopen'}</button>` : `<button class="btn secondary" data-view="${a.id}">View</button>`}
+        </div>`;
+        list.appendChild(row);
+        row.querySelector('[data-mark]')?.addEventListener('click', ()=>{
+            a.status = (a.status === 'pending' ? 'done' : 'pending');
+            saveState();
+            renderAssignments();
+            showToast('Status updated');
+        });
+        row.querySelector('[data-view]')?.addEventListener('click', ()=> showToast(`Viewing: ${a.title}`));
+    });
+}
+
+function renderSchedule(){
+    const pre = main.querySelector('#scheduleBlock');
+    if(pre) pre.textContent = `Mon 09:00 Math
+Tue 10:00 English
+Wed 11:00 Science
+Thu 09:00 Computer
+Fri 08:30 Assembly`;
+}
+
+function renderResources(){
+    const list = main.querySelector('#resourcesList');
+    if(!list) return;
+    list.innerHTML = '';
+
+    const newBtn = main.querySelector('#newResourceBtn');
+    const newArea = main.querySelector('#newResourceArea');
+    const resForm = main.querySelector('#resourceForm');
+    const cancelRes = main.querySelector('#cancelResource');
+
+    if(newBtn) newBtn.style.display = canPost() ? 'inline-block' : 'none';
+
+    (state.resources || []).slice().reverse().forEach(r=>{
+        const row = document.createElement('div');
+        row.className = 'file-row';
+        const metaHtml = `<div class="file-meta">
+            <div style="font-weight:700">${escapeHtml(r.title)}</div>
+            <div class="small-muted">${escapeHtml(r.author || '')} • ${escapeHtml(r.date || '')}</div>
+            <div class="small-muted" style="margin-top:8px">${escapeHtml(r.description || '')}</div>
+        </div>`;
+        const actions = document.createElement('div');
+        actions.className = 'file-actions';
+
+        const openBtn = document.createElement('button');
+        openBtn.className = 'btn';
+        openBtn.textContent = r.type === 'video' ? 'Open / Preview' : 'Open';
+        openBtn.addEventListener('click', ()=> {
+            if(r.type === 'video'){
+                const u = r.href || '';
+                const you = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_\-]+)/i.exec(u);
+                const vimeo = /vimeo\.com\/([0-9]+)/i.exec(u);
+                if(you){
+                    const id = you[1];
+                    showModal(r.title, `<div style="width:100%;height:320px"><iframe width="100%" height="320" src="https://www.youtube.com/embed/${escapeHtml(id)}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`);
+                    return;
+                } else if(vimeo){
+                    const id = vimeo[1];
+                    showModal(r.title, `<div style="width:100%;height:320px"><iframe width="100%" height="320" src="https://player.vimeo.com/video/${escapeHtml(id)}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe></div>`);
+                    return;
+                } else {
+                    window.open(r.href, '_blank');
+                    return;
+                }
+            } else {
+                window.open(r.href, '_blank');
+            }
+        });
+        actions.appendChild(openBtn);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'btn secondary';
+        copyBtn.textContent = 'Copy link';
+        copyBtn.addEventListener('click', ()=> {
+            try{
+                navigator.clipboard.writeText(r.href || '');
+                showToast('Link copied');
+            }catch(e){
+                prompt('Copy this link', r.href || '');
+            }
+        });
+        actions.appendChild(copyBtn);
+
+        if(state.current && (state.current.role === 'host' || (r.authorUser && r.authorUser === state.current.username))){
+            const del = document.createElement('button');
+            del.className = 'btn secondary';
+            del.textContent = 'Delete';
+            del.addEventListener('click', ()=>{
+                if(!confirm('Delete resource "'+r.title+'"?')) return;
+                const idx = state.resources.findIndex(x=>x.id === r.id);
+                if(idx >= 0){ state.resources.splice(idx,1); saveState(); renderResources(); showToast('Resource deleted'); }
+            });
+            actions.appendChild(del);
+        }
+
+        row.innerHTML = metaHtml;
+        row.appendChild(actions);
+        list.appendChild(row);
+    });
+
+    if(newBtn) newBtn.onclick = ()=> { if(modalOpen){ showToast('Close dialog first'); return; } newArea.style.display = ''; setTimeout(()=> main.querySelector('#resTitle')?.focus(), 50); };
+    if(cancelRes) cancelRes.onclick = ()=> { if(newArea) newArea.style.display = 'none'; resForm?.reset(); };
+
+    if(resForm){
+        resForm.onsubmit = (e)=>{
+            e.preventDefault();
+            if(!canPost()){ alert('Permission denied'); return; }
+            const title = (document.getElementById('resTitle').value || '').trim();
+            const url = (document.getElementById('resUrl').value || '').trim();
+            const type = (document.getElementById('resType').value || 'link');
+            const desc = (document.getElementById('resDesc').value || '').trim();
+            if(!title || !url){ alert('Provide title and URL'); return; }
+            try{ new URL(url); }catch(err){ alert('Invalid URL'); return; }
+            const entry = { id: uid(), title, href: url, type, description: desc, author: state.current ? state.current.name : 'Unknown', authorUser: state.current ? state.current.username : null, date: new Date().toISOString().split('T')[0] };
+            state.resources = state.resources || [];
+            state.resources.push(entry);
+            saveState();
+            resForm.reset();
+            if(newArea) newArea.style.display = 'none';
+            renderResources();
+            showToast('Resource published');
+        };
+    }
+}
+
+function renderGrades(){
+    const addBtn = main.querySelector('#addGradeBtn');
+    if(addBtn) addBtn.style.display = canEditGrades() ? '' : 'none';
+    const container = main.querySelector('#gradesList');
+    if(!container) return;
+    container.innerHTML = '';
+
+    const table = document.createElement('table');
+    table.className = 'grid';
+    table.innerHTML = `<thead><tr><th>Student</th><th>Subject</th><th>Score</th><th>Date</th><th></th></tr></thead><tbody></tbody>`;
+    const tbody = table.querySelector('tbody');
+
+    (state.grades || []).slice().forEach(g=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${escapeHtml(g.student)}</td><td>${escapeHtml(g.subject)}</td><td>${escapeHtml(g.score)}</td><td>${escapeHtml(g.date)}</td>
+            <td>
+                ${canEditGrades() ? `<button class="btn secondary" data-edit="${g.id}">Edit</button><button class="btn secondary" data-del="${g.id}">Delete</button>` : ''}
+            </td>`;
+        tbody.appendChild(tr);
+
+        tr.querySelector('[data-edit]')?.addEventListener('click', ()=>{
+            openGradeEditor(g);
+        });
+        tr.querySelector('[data-del]')?.addEventListener('click', ()=>{
+            if(!confirm('Delete this grade?')) return;
+            const idx = state.grades.findIndex(x=>x.id==g.id);
+            if(idx>=0){ state.grades.splice(idx,1); saveState(); renderGrades(); showToast('Grade removed'); }
+        });
+    });
+
+    container.appendChild(table);
+
+    if(addBtn) addBtn.onclick = ()=> openGradeEditor();
+}
+
+function openGradeEditor(existing){
+    const wrap = document.createElement('div');
+    wrap.className = 'dialog-back';
+    const isNew = !existing;
+    const student = existing ? existing.student : '';
+    const subject = existing ? existing.subject : '';
+    const score = existing ? existing.score : '';
+    const date = existing ? existing.date : new Date().toISOString().split('T')[0];
+
+    wrap.innerHTML = `<div class="dialog" role="dialog" aria-modal="true">
+        <h3 style="margin:0 0 8px 0">${isNew?'Add grade':'Edit grade'}</h3>
+        <form id="gradeForm">
+            <div class="form-row"><label>Student</label><input id="gStudent" required /></div>
+            <div class="form-row"><label>Subject</label><input id="gSubject" required /></div>
+            <div class="form-row"><label>Score</label><input id="gScore" required /></div>
+            <div class="form-row"><label>Date</label><input id="gDate" type="date" required /></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" type="submit">${isNew?'Add':'Save'}</button><button type="button" class="btn secondary" id="gradeCancel">Cancel</button></div>
+        </form>
+    </div>`;
+    document.body.appendChild(wrap);
+    const form = wrap.querySelector('#gradeForm');
+    wrap.querySelector('#gStudent').value = student;
+    wrap.querySelector('#gSubject').value = subject;
+    wrap.querySelector('#gScore').value = score;
+    wrap.querySelector('#gDate').value = date;
+
+    modalOpen = true;
+    activeTrap = trapFocus(wrap);
+
+    wrap.querySelector('#gradeCancel').addEventListener('click', ()=> { activeTrap && activeTrap(); wrap.remove(); modalOpen = false; });
+    form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const s = wrap.querySelector('#gStudent').value.trim();
+        const subj = wrap.querySelector('#gSubject').value.trim();
+        const sc = wrap.querySelector('#gScore').value.trim();
+        const d = wrap.querySelector('#gDate').value;
+        if(!s || !subj || !sc) return;
+        if(isNew){
+            state.grades.push({ id: uid(), student: s, subject: subj, score: sc, date: d });
+        } else {
+            const target = state.grades.find(x=>x.id==existing.id);
+            if(target){ target.student = s; target.subject = subj; target.score = sc; target.date = d; }
+        }
+        saveState();
+        activeTrap && activeTrap();
+        wrap.remove();
+        modalOpen = false;
+        renderGrades();
+        showToast('Grades saved');
+    });
+}
+
+function renderSubjects(){
+    const cont = main.querySelector('.subjects');
+    if(!cont) return;
+    cont.innerHTML = '';
+    subjectsList.forEach(s => {
+        const teachers = (state.subjectTeachers && state.subjectTeachers[s.id]) ? state.subjectTeachers[s.id] : [];
+
+        const card = document.createElement('div');
+        card.className = 'subject-card';
+
+        const tile = document.createElement('button');
+        tile.className = 'tile';
+        tile.setAttribute('role', 'listitem');
+        tile.setAttribute('aria-label', s.name);
+        tile.innerHTML = `<div style="display:flex;align-items:center;gap:10px"><div class="icon" aria-hidden="true">${s.icon}</div><div><div class="name">${s.name}</div><div class="meta">${teachers.length} teacher(s)</div></div></div>`;
+        tile.onclick = () => { if(modalOpen){ showToast('Close the dialog first'); return; } navigateWithFade('subject/' + s.id); };
+        card.appendChild(tile);
+
+        const controls = document.createElement('div');
+        controls.className = 'subject-controls';
+
+        const teacherList = document.createElement('div');
+        teacherList.className = 'teacher-list';
+        if (teachers.length) {
+            const names = teachers.map(u => state.users[u] ? state.users[u].name : u);
+            teacherList.textContent = names.slice(0, 3).join(', ') + (teachers.length > 3 ? ` +${teachers.length - 3}` : '');
+        } else {
+            teacherList.textContent = 'No teachers yet';
+        }
+        controls.appendChild(teacherList);
+
+        if (!state.current) {
+            const hint = document.createElement('div');
+            hint.className = 'small-muted';
+            hint.textContent = '';
+            controls.appendChild(hint);
+        } else if (teachers.includes(state.current.username)) {
+            const assigned = document.createElement('div');
+            assigned.className = 'small-muted';
+            assigned.textContent = 'Assigned';
+            controls.appendChild(assigned);
+        } else if (teachers.length < 5 && state.current.role !== 'teacher') {
+            const applyBtn = document.createElement('button');
+            applyBtn.className = 'btn';
+            applyBtn.textContent = `Apply to teach`;
+            applyBtn.addEventListener('click', () => {
+                if (!state.current) { alert('Sign in to apply'); return; }
+                const already = (state.teacherApplications || []).find(a => a.subject === s.id && a.applicant === state.current.username && a.status === 'pending');
+                if (already) { showToast('You already applied for this subject'); return; }
+                state.teacherApplications.push({ id: uid(), subject: s.id, applicant: state.current.username, name: state.current.name, time: Date.now(), status: 'pending' });
+                saveState();
+                showToast('Application submitted');
+                renderSubjects();
+            });
+            controls.appendChild(applyBtn);
+        } else {
+            const spacer = document.createElement('div');
+            controls.appendChild(spacer);
+        }
+
+        card.appendChild(controls);
+        cont.appendChild(card);
+    });
+}
+
+function renderPosts(){
+    const postsList = main.querySelector('#postsList');
+    const hint = main.querySelector('#postsRoleHint');
+    const newBtn = main.querySelector('#newPostBtn');
+    if(postsList) postsList.innerHTML = '';
+    if(hint) hint.textContent = state.current ? `Signed in as ${state.current.role}` : 'Sign in to interact';
+    if(newBtn) newBtn.style.display = canPost() ? 'inline-block' : 'none';
+
+    ([...(state.posts || [])].sort((a,b)=>b.time-a.time)).forEach(p=>{
+        const el = document.createElement('article');
+        el.className = 'post' + (p.important ? ' important' : '');
+        const subjectLabel = p.subject ? `<span class="small-muted" style="margin-left:8px">[${escapeHtml((subjectsList.find(s=>s.id===p.subject)||{name:p.subject}).name)}]</span>` : '';
+        el.innerHTML = `<div class="meta"><strong>${escapeHtml(p.title)}</strong>${p.important?'<span class="important-badge">IMPORTANT</span>':''}${subjectLabel}<span style="margin-left:8px">by ${escapeHtml(p.author)} • ${new Date(p.time).toLocaleString()}</span></div>
+            <div>${escapeHtml(p.body)}</div>
+            <div style="margin-top:8px;color:var(--muted);font-size:.85rem">Role: ${escapeHtml(p.authorRole)}</div>`;
+        postsList?.appendChild(el);
+    });
+
+    const newArea = main.querySelector('#newPostArea');
+    const postForm = main.querySelector('#postForm');
+    const cancel = main.querySelector('#cancelPost');
+
+    if(postForm){
+        const existing = postForm.querySelector('.injected-important');
+        if(existing) existing.remove();
+
+        if(isHost()){
+            const div = document.createElement('div');
+            div.className = 'form-row injected-important';
+            div.innerHTML = `<label><input id="postImportant" type="checkbox" /> <strong>Mark as important</strong> (host only)</label>`;
+            postForm.insertBefore(div, postForm.querySelector('div[style*="display:flex;gap:8px"]'));
+        }
+
+        const existingSub = postForm.querySelector('.injected-subject');
+        if(existingSub) existingSub.remove();
+
+        if(state.current){
+            let options = [];
+            if(state.current.role === 'host'){
+                options = subjectsList.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`);
+            } else if(state.current.role === 'teacher'){
+                const userSubs = state.users[state.current.username]?.subjects || [];
+                const listForTeacher = userSubs.length ? userSubs : subjectsList.map(s=>s.id);
+                options = listForTeacher.map(s=>{
+                    const item = subjectsList.find(x=>x.id===s) || {id:s,name:s};
+                    return `<option value="${item.id}">${escapeHtml(item.name)}</option>`;
+                });
+            }
+            if(options.length){
+                const div = document.createElement('div');
+                div.className = 'form-row injected-subject';
+                div.innerHTML = `<label for="postSubject">Subject (optional)</label><select id="postSubject"><option value="">General</option>${options.join('')}</select>`;
+                postForm.insertBefore(div, postForm.querySelector('div[style*="display:flex;gap:8px"]'));
+            }
+        }
+    }
+
+    if(newBtn) newBtn.onclick = ()=>{ if(modalOpen){ showToast('Close dialog first'); return; } newArea.style.display = ''; setTimeout(()=>main.querySelector('#postTitle')?.focus(),50); };
+    if(cancel) cancel.onclick = ()=>{ if(newArea) newArea.style.display='none'; postForm?.reset(); };
+    if(postForm) postForm.onsubmit = (e)=>{
+        e.preventDefault();
+        if(!canPost()){ alert('Permission denied.'); return; }
+        const title = document.getElementById('postTitle').value.trim();
+        const body = document.getElementById('postBody').value.trim();
+        if(!title || !body) return;
+        const important = isHost() && !!document.getElementById('postImportant') && document.getElementById('postImportant').checked;
+        const subject = document.getElementById('postSubject') ? (document.getElementById('postSubject').value || null) : null;
+        const p = { id:Date.now(), author:state.current.name, authorUser:state.current.username, authorRole:state.current.role, title, body, time:Date.now(), important: !!important, subject };
+        state.posts.push(p);
+        saveState();
+        postForm.reset();
+        if(newArea) newArea.style.display='none';
+        renderPosts();
+        showToast((p.important ? 'IMPORTANT: ' : '') + `Announcement: ${p.title}`, p.important ? 8000 : 3000);
+        if(state.current && state.current.username){ state.users[state.current.username].lastSeenPostTime = Date.now(); saveState(); }
+    };
+}
+
+function renderDashboard(){
+    const area = main.querySelector('#dashContent');
+    if(!area) return;
+    const isTeacherRole = state.current && (state.current.role === 'teacher' || state.current.role === 'host');
+    const recentPosts = (state.posts||[]).slice().sort((a,b)=>b.time-a.time).slice(0,3);
+    const recentFiles = (state.classFiles||[]).slice().reverse().slice(0,3);
+    const myGrades = (state.grades||[]).filter(g => state.current ? g.student === state.current.name : false);
+
+    let html = `<p>Hello <strong>${state.current ? escapeHtml(state.current.name) : 'guest'}</strong></p>`;
+    html += `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px">`;
+    html += `<div class="page" style="flex:1;min-width:220px;padding:12px"><strong>Announcements</strong><div class="small-muted" style="margin-top:8px">${recentPosts.length? recentPosts.map(p=>escapeHtml(p.title) + (p.important ? ' [IMPORTANT]' : '')).join('<br>') : 'No recent posts'}</div></div>`;
+    html += `<div class="page" style="flex:1;min-width:220px;padding:12px"><strong>Recent files</strong><div class="small-muted" style="margin-top:8px">${recentFiles.length? recentFiles.map(f=>escapeHtml(f.title)).join('<br>') : 'No files'}</div></div>`;
+    html += `</div>`;
+
+    if(isTeacherRole){
+        html += `<div style="margin-top:12px"><button class="btn" onclick="navigateWithFade('class-files')">Manage Files</button> <button class="btn secondary" onclick="navigateWithFade('grades')">Manage Grades</button></div>`;
+    } else if(state.current){
+        html += `<div style="margin-top:12px"><button class="btn" onclick="navigateWithFade('class-files')">Browse files</button> <button class="btn secondary" onclick="navigateWithFade('grades')">View grades</button></div>`;
+    } else {
+        html += `<div style="margin-top:12px" class="small-muted">Sign in to see personalized items.</div>`;
+    }
+
+    if(myGrades && myGrades.length){
+        html += `<div style="margin-top:12px"><h3>Your grades</h3>`;
+        myGrades.slice(0,5).forEach(g=> html += `<div class="small-muted">${escapeHtml(g.subject)}: ${escapeHtml(g.score)} (${escapeHtml(g.date)})</div>`);
+        html += `</div>`;
+    }
+
+    area.innerHTML = html;
+}
+
+/* Admin area */
+function renderAdmin(){
+    const adminArea = main.querySelector('#adminArea');
+    if(!adminArea) return;
+    if(!state.current || state.current.role !== 'host'){
+        adminArea.innerHTML = `<p class="muted">Host only: Please sign in as the host to manage users and requests.</p>`;
+        return;
+    }
+    adminArea.innerHTML = '';
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+            <form id="createUser" style="display:flex;gap:8px;align-items:center">
+                <input id="newUserName" placeholder="username" required />
+                <input id="newUserPass" placeholder="password" required />
+                <select id="newUserRole"><option value="student">student</option><option value="teacher">teacher</option></select>
+                <button class="btn" type="submit">Create</button>
+            </form>
+            <div style="margin-left:12px">
+                <button id="exportUsers" class="btn secondary">Export users (CSV)</button>
+                <input id="importUsersFile" type="file" accept=".csv" style="display:none" />
+                <button id="importUsersBtn" class="btn secondary">Import users (CSV)</button>
+            </div>
+        </div>
+        <div id="userList"></div>
+        <hr style="margin:12px 0" />
+        <div>
+            <h3>Teacher applications (host feed)</h3>
+            <div id="applicationsList"></div>
+        </div>
+    `;
+    adminArea.appendChild(wrapper);
+
+    function refreshList(){
+        const list = wrapper.querySelector('#userList');
+        list.innerHTML = '';
+        Object.keys(state.users).forEach(u=>{
+            if(hiddenHostUsernames.has(u)) return;
+            const info = state.users[u];
+            const row = document.createElement('div');
+            row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between';
+            row.style.padding='8px'; row.style.borderRadius='8px'; row.style.marginBottom='6px'; row.style.background='#fbfdff';
+            row.innerHTML = `<div style="min-width:220px">
+                <strong>${escapeHtml(u)}</strong> <span class="muted">(${escapeHtml(info.name || '')})</span>
+                <div class="small-muted">role: ${escapeHtml(info.role)}</div>
+            </div>`;
+            const controls = document.createElement('div');
+
+            const sel = document.createElement('select');
+            sel.innerHTML = `<option value="student">student</option><option value="teacher">teacher</option><option value="host">host</option>`;
+            sel.value = info.role;
+            sel.onchange = ()=>{ state.users[u].role = sel.value; saveState(); render(); };
+
+            const subjBtn = document.createElement('button'); subjBtn.className='btn secondary'; subjBtn.textContent='Subjects';
+            subjBtn.onclick = (ev)=> { ev.preventDefault(); showSubjectEditor(u); };
+
+            const resetBtn = document.createElement('button'); resetBtn.className='btn'; resetBtn.textContent='Reset password';
+            resetBtn.onclick = async ()=> {
+                if(!confirm(`Reset password for ${u}? A new random password will be generated and shown once.`)) return;
+                const newPwd = generateRandomPassword(12);
+                // store plaintext (compat)
+                state.users[u].password = newPwd;
+                saveState();
+                showModal('Password reset', `<div>New password for <strong>${escapeHtml(u)}</strong>:</div><pre style="margin-top:8px;padding:8px;background:#f7f7f7;border-radius:6px">${escapeHtml(newPwd)}</pre><div style="margin-top:8px" class="small-muted">This value is shown only once. Copy/store it securely.</div>`);
+            };
+
+            const del = document.createElement('button'); del.textContent='Delete'; del.className='btn secondary';
+            del.onclick = ()=>{ if(!confirm('Delete user '+u+'?')) return; delete state.users[u];
+                Object.keys(state.subjectTeachers||{}).forEach(sub=> {
+                    const idx = state.subjectTeachers[sub].indexOf(u); if(idx>=0) state.subjectTeachers[sub].splice(idx,1);
+                });
+                saveState(); refreshList(); };
+
+            controls.appendChild(sel);
+            controls.appendChild(subjBtn);
+            controls.appendChild(resetBtn);
+            controls.appendChild(del);
+
+            row.appendChild(controls);
+            list.appendChild(row);
+        });
+    }
+
+    function renderApplications(){
+        const node = wrapper.querySelector('#applicationsList');
+        node.innerHTML = '';
+        (state.teacherApplications || []).slice().reverse().forEach(app=>{
+            const row = document.createElement('div');
+            row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between';
+            row.style.padding='8px'; row.style.borderRadius='8px'; row.style.marginBottom='6px'; row.style.background='#fff7f0';
+            row.innerHTML = `<div><strong>${escapeHtml(app.name)}</strong> applied to teach <strong>${escapeHtml(app.subject)}</strong> <div class="small-muted">${new Date(app.time).toLocaleString()}</div></div>`;
+            const controls = document.createElement('div');
+            const approve = document.createElement('button'); approve.className = 'btn'; approve.textContent = 'Approve';
+            const reject = document.createElement('button'); reject.className = 'btn secondary'; reject.textContent = 'Reject';
+            approve.onclick = ()=> {
+                state.subjectTeachers[app.subject] = state.subjectTeachers[app.subject] || [];
+                if(!state.subjectTeachers[app.subject].includes(app.applicant)){
+                    state.subjectTeachers[app.subject].push(app.applicant);
+                }
+                if(state.users[app.applicant]) state.users[app.applicant].role = 'teacher';
+                ensureUserSubjects();
+                const idx = state.teacherApplications.findIndex(x=>x.id === app.id);
+                if(idx>=0) state.teacherApplications.splice(idx,1);
+                saveState();
+                renderApplications();
+                refreshList();
+                showToast('Application approved');
+            };
+            reject.onclick = ()=> {
+                const idx = state.teacherApplications.findIndex(x=>x.id === app.id);
+                if(idx>=0) state.teacherApplications.splice(idx,1);
+                saveState();
+                renderApplications();
+                showToast('Application rejected');
+            };
+            controls.appendChild(approve); controls.appendChild(reject);
+            row.appendChild(controls);
+            node.appendChild(row);
+        });
+        if((state.teacherApplications || []).length === 0){
+            node.innerHTML = '<div class="small-muted">No pending applications</div>';
+        }
+    }
+
+    const form = wrapper.querySelector('#createUser');
+    form.onsubmit = (e)=>{
+        e.preventDefault();
+        const uname = wrapper.querySelector('#newUserName').value.trim();
+        const pass = wrapper.querySelector('#newUserPass').value.trim();
+        const role = wrapper.querySelector('#newUserRole').value;
+        if(!uname || !pass) return;
+        if(state.users[uname]){ alert('User exists'); return; }
+        // store plaintext password (compat)
+        state.users[uname] = { password: pass, role, name: uname, lastSeenPostTime: Date.now(), subjects: [] };
+        saveState();
+        wrapper.querySelector('#newUserName').value=''; wrapper.querySelector('#newUserPass').value='';
+        refreshList();
+    };
+
+    const exportBtn = wrapper.querySelector('#exportUsers');
+    const importBtn = wrapper.querySelector('#importUsersBtn');
+    const importFile = wrapper.querySelector('#importUsersFile');
+
+    exportBtn.onclick = ()=>{
+        const rows = [['username','name','role']];
+        Object.keys(state.users).forEach(u=>{
+            if(hiddenHostUsernames.has(u)) return;
+            const info = state.users[u];
+            rows.push([u, info.name || '', info.role || 'student']);
+        });
+        const csv = rows.map(r=>r.map(c=>`"${String(c).replaceAll('"','""')}"`).join(',')).join('\n');
+        const a = document.createElement('a');
+        a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+        a.download = 'users.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+    };
+
+    importBtn.onclick = ()=> importFile.click();
+    importFile.onchange = async (ev)=>{
+        const f = ev.target.files && ev.target.files[0];
+        if(!f) return;
+        const text = await f.text();
+        const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+        let start = 0;
+        if(lines[0] && lines[0].toLowerCase().includes('username')) start = 1;
+        for(let i=start;i<lines.length;i++){
+            const cols = lines[i].split(',').map(c=>c.replace(/^"|"$/g,'').trim());
+            const [u,name,role] = cols;
+            if(!u) continue;
+            if(state.users[u]) continue;
+            const randomPwd = generateRandomPassword(10);
+            state.users[u] = { password: randomPwd, role: role || 'student', name: name || u, lastSeenPostTime: Date.now(), subjects: [] };
+        }
+        saveState();
+        importFile.value = '';
+        refreshList();
+        showToast('Users imported (passwords randomized)');
+    };
+
+    refreshList();
+    renderApplications();
+}
+
+/* Subject editor modal (host) */
+function showSubjectEditor(username){
+    if(!isHost()) return;
+    const wrap = document.createElement('div'); wrap.className='dialog-back';
+    const user = state.users[username] || {};
+    const current = new Set(user.subjects || []);
+    let html = `<div class="dialog" role="dialog" aria-modal="true"><h3 style="margin:0 0 8px 0">Edit subjects for ${escapeHtml(username)}</h3><form id="subEdit">`;
+    subjectsList.forEach(s=>{
+        const checked = current.has(s.id) ? 'checked' : '';
+        html += `<label style="display:block;margin-bottom:6px"><input type="checkbox" name="sub" value="${s.id}" ${checked}/> ${escapeHtml(s.name)}</label>`;
+    });
+    html += `<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px"><button class="btn" type="submit">Save</button><button type="button" class="btn secondary" id="subCancel">Cancel</button></div></form></div>`;
+    wrap.innerHTML = html;
+    document.body.appendChild(wrap);
+
+    modalOpen = true;
+    activeTrap = trapFocus(wrap);
+
+    wrap.querySelector('#subCancel').addEventListener('click', ()=> { activeTrap && activeTrap(); wrap.remove(); modalOpen = false; });
+    wrap.querySelector('#subEdit').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const checked = Array.from(wrap.querySelectorAll('input[name="sub"]:checked')).map(i=>i.value);
+        Object.keys(state.subjectTeachers||{}).forEach(sub=>{
+            state.subjectTeachers[sub] = state.subjectTeachers[sub].filter(u=>u !== username);
+        });
+        checked.forEach(sub=>{
+            state.subjectTeachers[sub] = state.subjectTeachers[sub] || [];
+            if(!state.subjectTeachers[sub].includes(username)) state.subjectTeachers[sub].push(username);
+        });
+        state.users[username].subjects = checked.slice();
+        state.users[username].role = checked.length ? 'teacher' : 'student';
+        ensureUserSubjects();
+        saveState();
+        activeTrap && activeTrap();
+        wrap.remove();
+        modalOpen = false;
+        showToast('Subjects updated');
+    
+    });
+}
+
+/* Modal helper used elsewhere */
+function showModal(title, html){
+    const modalWrap = document.createElement('div');
+    modalWrap.className = 'dialog-back';
+    modalWrap.innerHTML = `<div class="dialog" role="dialog" aria-modal="true"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h2 style="margin:0">${escapeHtml(title)}</h2><button class="btn secondary modalClose">Close</button></div><div>${html}</div></div>`;
+    document.body.appendChild(modalWrap);
+    modalOpen = true;
+    const closeFn = trapFocus(modalWrap);
+    modalWrap.querySelector('.modalClose').focus();
+    function close(){ closeFn && closeFn(); modalWrap.remove(); modalOpen = false; }
+    modalWrap.addEventListener('click', (ev)=>{ if(ev.target === modalWrap) close(); });
+    modalWrap.querySelector('.modalClose').addEventListener('click', close);
+    const esc = (e)=>{ if(e.key==='Escape'){ close(); document.removeEventListener('keydown', esc); }};
+    document.addEventListener('keydown', esc);
+}
+
+/* Subject detail page */
+function renderSubject(subjectId){
+    const subj = subjectsList.find(s=>s.id === subjectId);
+    if(!subj){ showToast('Unknown subject'); navigate('subjects'); return; }
+    const titleEl = main.querySelector('#subjectName');
+    const hint = main.querySelector('#subjectHint');
+    const teachersEl = main.querySelector('#subjectTeachersList');
+    const filesEl = main.querySelector('#subjectFiles');
+    const gradesEl = main.querySelector('#subjectGrades');
+    const actionsEl = main.querySelector('#subjectActions');
+    if(!titleEl || !hint || !teachersEl || !filesEl || !gradesEl || !actionsEl) return;
+
+    titleEl.textContent = subj.name;
+    hint.textContent = `Viewing ${subj.name}`;
+    const teachers = state.subjectTeachers[subjectId] || [];
+
+    if(teachers.length){
+        const names = teachers.map(u => state.users[u] ? state.users[u].name : u);
+        teachersEl.innerHTML = names.join(', ');
+    } else {
+        teachersEl.innerHTML = '<span class="small-muted">No teachers assigned</span>';
+    }
+
+    filesEl.innerHTML = '';
+    const files = (state.classFiles || []).slice().reverse().filter(f => f.subject === subjectId);
+    if(files.length === 0) filesEl.innerHTML = '<div class="small-muted">No files for this subject.</div>';
+    files.forEach(f=>{
+        const div = document.createElement('div');
+        div.className = 'file-row';
+        div.innerHTML = `<div class="file-meta"><div style="font-weight:700">${escapeHtml(f.title)}</div><div class="small-muted">${escapeHtml(f.author)} • ${escapeHtml(f.date)} • ${escapeHtml((subjectsList.find(x=>x.id===f.subject)||{name:'General'}).name)}</div></div>
+            <div class="file-actions"><button class="btn" data-open="${f.id}">Open</button></div>`;
+        filesEl.appendChild(div);
+        div.querySelector('[data-open]')?.addEventListener('click', ()=> {
+            const stored = state.classFiles.find(x=>x.id==f.id);
+            if(stored && stored.content){
+                const w = window.open(stored.content, '_blank');
+                if(!w) showToast('Popup blocked — download instead');
+            } else showToast('No preview');
+        });
+    });
+
+    const postsForSub = (state.posts || []).slice().filter(p => p.subject === subjectId).sort((a,b)=>b.time-a.time);
+    const postsWrap = document.createElement('div');
+    postsWrap.style.marginTop = '12px';
+    postsWrap.innerHTML = `<strong>Related announcements</strong>`;
+    if(postsForSub.length === 0){
+        const n = document.createElement('div'); n.className='small-muted'; n.style.marginTop='8px'; n.textContent = 'No announcements for this subject.';
+        postsWrap.appendChild(n);
+    } else {
+        postsForSub.forEach(p=>{
+            const article = document.createElement('div');
+            article.className = 'post';
+            article.style.marginTop = '8px';
+            article.innerHTML = `<div class="meta"><strong>${escapeHtml(p.title)}</strong><span style="margin-left:8px">${escapeHtml(p.author)} • ${new Date(p.time).toLocaleString()}</span></div><div style="margin-top:6px">${escapeHtml(p.body)}</div>`;
+            postsWrap.appendChild(article);
+        });
+    }
+    filesEl.appendChild(postsWrap);
+
+    gradesEl.innerHTML = '';
+    const grades = (state.grades || []).filter(g => {
+        return (g.subject && (g.subject.toLowerCase() === subj.name.toLowerCase() || g.subject.toLowerCase() === subjectId.toLowerCase()));
+    });
+    if(grades.length === 0) gradesEl.innerHTML = '<div class="small-muted">No grades recorded for this subject.</div>';
+    else {
+        grades.forEach(g => {
+            const d = document.createElement('div');
+            d.className = 'small-muted';
+            d.textContent = `${g.student} — ${g.score} (${g.date})`;
+            gradesEl.appendChild(d);
+        });
+    }
+
+    actionsEl.innerHTML = '';
+    if(state.current){
+        if(state.subjectTeachers[subjectId] && state.subjectTeachers[subjectId].includes(state.current.username)){
+            const t = document.createElement('div'); t.textContent = 'You are a teacher for this subject';
+            actionsEl.appendChild(t);
+            if(canManageFiles()){
+                const mbtn = document.createElement('button');
+                mbtn.className = 'btn secondary';
+                mbtn.textContent = 'Upload file';
+                mbtn.onclick = ()=> navigateWithFade('class-files');
+                actionsEl.appendChild(document.createTextNode(' '));
+                actionsEl.appendChild(mbtn);
+            }
+            if(canPost()){
+                const sp = document.createElement('button');
+                sp.className = 'btn';
+                sp.textContent = 'Post announcement to this subject';
+                sp.onclick = ()=>{
+                    const title = prompt('Announcement title for ' + subj.name);
+                    if(!title) return;
+                    const body = prompt('Message');
+                    if(!body) return;
+                    const p = { id: Date.now(), author: state.current.name, authorUser: state.current.username, authorRole: state.current.role, title, body, time: Date.now(), important: false, subject: subjectId };
+                    state.posts.push(p);
+                    saveState();
+                    showToast('Posted to ' + subj.name);
+                    renderSubject(subjectId);
+                };
+                actionsEl.appendChild(document.createTextNode(' '));
+                actionsEl.appendChild(sp);
+            }
+        } else if((state.subjectTeachers[subjectId] || []).length < 5 && state.current.role !== 'teacher'){
+            const btn = document.createElement('button'); btn.className = 'btn'; btn.textContent = 'Apply to teach this subject';
+            btn.addEventListener('click', ()=>{
+                const already = (state.teacherApplications || []).find(a => a.subject === subjectId && a.applicant === state.current.username && a.status==='pending');
+                if(already){ showToast('Already applied'); return; }
+                state.teacherApplications.push({ id: uid(), subject: subjectId, applicant: state.current.username, name: state.current.name, time: Date.now(), status:'pending' });
+                saveState();
+                showToast('Application submitted');
+                renderSubject(subjectId);
+            });
+            actionsEl.appendChild(btn);
+        }
+    }
+
+    if(isHost()){
+        const hostWrap = document.createElement('div');
+        hostWrap.style.marginTop = '10px';
+        hostWrap.innerHTML = `<div style="margin-bottom:8px"><strong>Host controls</strong></div>`;
+        const select = document.createElement('select');
+        select.innerHTML = Object.keys(state.users).filter(u=>state.users[u].role!=='host').map(u=>`<option value="${u}">${escapeHtml(u)} — ${escapeHtml(state.users[u].name||u)}</option>`).join('');
+        const addBtn = document.createElement('button'); addBtn.className='btn'; addBtn.textContent = 'Assign selected as teacher';
+        const removeBtn = document.createElement('button'); removeBtn.className='btn secondary'; removeBtn.textContent = 'Remove selected';
+        addBtn.onclick = ()=> {
+            const u = select.value;
+            state.subjectTeachers[subjectId] = state.subjectTeachers[subjectId] || [];
+            if(!state.subjectTeachers[subjectId].includes(u)){
+                state.subjectTeachers[subjectId].push(u);
+            }
+            if(state.users[u]) state.users[u].role = 'teacher';
+            ensureUserSubjects();
+            saveState(); renderSubject(subjectId); showToast('Assigned');
+        };
+        removeBtn.onclick = ()=> {
+            const u = select.value;
+            state.subjectTeachers[subjectId] = state.subjectTeachers[subjectId] || [];
+            const idx = state.subjectTeachers[subjectId].indexOf(u);
+            if(idx>=0) state.subjectTeachers[subjectId].splice(idx,1);
+            ensureUserSubjects();
+            saveState(); renderSubject(subjectId); showToast('Removed');
+        };
+        hostWrap.appendChild(select); hostWrap.appendChild(document.createTextNode(' ')); hostWrap.appendChild(addBtn); hostWrap.appendChild(document.createTextNode(' ')); hostWrap.appendChild(removeBtn);
+        actionsEl.appendChild(hostWrap);
+    }
+}
+
+/* Profile renderer (plaintext checks) */
+function renderProfile(){
+    const form = main.querySelector('#profileForm');
+    if(!form) return;
+    const usernameInput = main.querySelector('#profUsername');
+    const nameInput = main.querySelector('#profName');
+    const roleInput = main.querySelector('#profRole');
+    const passInput = main.querySelector('#profPassword');
+    const passConfirm = main.querySelector('#profPasswordConfirm');
+    const currentPass = main.querySelector('#profCurrentPassword');
+    const passStrength = main.querySelector('#profPassStrength');
+
+    if(!state.current){
+        usernameInput.value = '';
+        nameInput.value = '';
+        roleInput.value = '';
+        passInput.value = '';
+        passConfirm.value = '';
+        currentPass.value = '';
+        if(passStrength) passStrength.textContent = '';
+        return;
+    }
+
+    const cur = state.users[state.current.username] || {};
+    usernameInput.value = state.current.username || '';
+    nameInput.value = cur.name || state.current.name || '';
+    roleInput.value = cur.role || state.current.role || '';
+    passInput.value = '';
+    passConfirm.value = '';
+    currentPass.value = '';
+    if(passStrength) passStrength.textContent = '';
+
+    passInput.addEventListener('input', ()=> {
+        if(passStrength) passStrength.textContent = 'Strength: ' + passwordStrengthText(passInput.value);
+    });
+
+    form.onsubmit = async (e)=>{
+        e.preventDefault();
+        const newName = nameInput.value.trim();
+        const newPass = passInput.value;
+        const newPassConfirm = passConfirm.value;
+        const curPassVal = currentPass.value;
+        if(state.users[state.current.username]){
+            if(newName) state.users[state.current.username].name = newName;
+            if(newPass){
+                if(!curPassVal){ alert('Enter current password to change it'); return; }
+                const ok = verifyPasswordPlain(state.current.username, curPassVal);
+                if(!ok){ alert('Current password incorrect'); return; }
+                if(newPass !== newPassConfirm){ alert('New passwords do not match'); return; }
+                state.users[state.current.username].password = newPass;
+            }
+            state.current.name = state.users[state.current.username].name;
+            saveState();
+            showToast('Profile saved');
+        
+        }
+    };
+
+    document.getElementById('profSignOut').onclick = (e)=>{ e.preventDefault(); signOut(); };
+}
+
+/* password strength helper */
+function passwordStrengthText(pw=''){
+    if(!pw) return 'No password';
+    let score = 0;
+    if(pw.length >= 8) score++;
+    if(pw.length >= 12) score++;
+    if(/[0-9]/.test(pw)) score++;
+    if(/[A-Z]/.test(pw)) score++;
+    if(/[^A-Za-z0-9]/.test(pw)) score++;
+    if(score <= 1) return 'Very weak';
+    if(score === 2) return 'Weak';
+    if(score === 3) return 'Okay';
+    if(score === 4) return 'Strong';
+    return 'Very strong';
+}
+
+/* Random password generator (used by admin import/reset) */
+function generateRandomPassword(len = 12){
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{};:,.<>?';
+    let out = '';
+    const arr = new Uint32Array(len);
+    crypto.getRandomValues(arr);
+    for(let i=0;i<len;i++) out += chars[arr[i] % chars.length];
+    return out;
+}
+
+/* Auth UI handlers and helpers */
+const loginDialogWrap = document.getElementById('loginDialogWrap');
+const registerDialogWrap = document.getElementById('registerDialogWrap');
+
+function openLogin(){
+    if(!loginDialogWrap) return;
+    loginDialogWrap.style.display = '';
+    modalOpen = true;
+    activeTrap = trapFocus(document.getElementById('loginDialog'));
+    try{ document.getElementById('username').focus(); }catch{}
+}
+function closeLogin(){
+    if(!loginDialogWrap) return;
+    loginDialogWrap.style.display = 'none';
+    document.getElementById('loginForm')?.reset();
+    activeTrap && activeTrap();
+    modalOpen = false;
+}
+
+function openRegister(){
+    if(!registerDialogWrap) return;
+    registerDialogWrap.style.display = '';
+    modalOpen = true;
+    activeTrap = trapFocus(document.getElementById('registerDialog'));
+    try{ document.getElementById('regUsername').focus(); }catch{}
+}
+function closeRegister(){
+    if(!registerDialogWrap) return;
+    registerDialogWrap.style.display = 'none';
+    document.getElementById('registerForm')?.reset();
+    activeTrap && activeTrap();
+    modalOpen = false;
+}
+
+async function signIn(username,password){
+    if(!username){ alert('Enter username'); return; }
+    if(!state.users[username]){ alert('Invalid credentials'); return; }
+    const ok = verifyPasswordPlain(username, password);
+    if(!ok){ alert('Invalid credentials'); return; }
+    const user = Object.assign({ username }, state.users[username]);
+    state.current = user;
+    saveState();
+    closeLogin(); closeRegister();
+    showToast(`Signed in as ${user.name}`);
+    render();
+}
+
+function signOut(){
+    state.current = null;
+    saveState();
+    showToast('Signed out');
+    render();
+}
+
+/* Wire auth dialog buttons/forms */
+document.getElementById('loginBtn')?.addEventListener('click', ()=> { if(state.current) signOut(); else openLogin(); });
+document.getElementById('loginClose')?.addEventListener('click', closeLogin);
+document.getElementById('loginForm')?.addEventListener('submit', (e)=>{ e.preventDefault(); const u = document.getElementById('username').value.trim(); const p = document.getElementById('password').value; signIn(u,p); });
+
+document.getElementById('createAccountBtn')?.addEventListener('click', openRegister);
+document.getElementById('registerClose')?.addEventListener('click', closeRegister);
+document.getElementById('registerForm')?.addEventListener('submit', (e)=> {
+    e.preventDefault();
+    const u = document.getElementById('regUsername').value.trim();
+    const name = document.getElementById('regName').value.trim() || u;
+    const p1 = document.getElementById('regPassword').value;
+    const p2 = document.getElementById('regPassword2').value;
+    if(!u || !p1){ alert('Please enter username and password'); return; }
+    if(p1 !== p2){ alert('Passwords do not match'); return; }
+    if(state.users[u]){ alert('Username taken'); return; }
+    if([...hiddenHostUsernames].includes(u)){ alert('Cannot create this username'); return; }
+    state.users[u] = { password: p1, role: 'student', name, lastSeenPostTime: Date.now(), subjects: [] };
+    saveState();
+    closeRegister();
+    signIn(u, p1);
+});
+
+/* Nav wiring */
+document.querySelectorAll('nav.sidebar a').forEach(a=>{
+    a.addEventListener('click', (ev)=>{
+        ev.preventDefault();
+        if(modalOpen){ showToast('Close the open dialog first'); return; }
+        const r = a.dataset.route || a.getAttribute('href').replace('#','');
+        navigateWithFade(r);
+    });
+});
+document.addEventListener('click', (e)=>{
+    const a = e.target.closest('a');
+    if(!a) return;
+    const href = a.getAttribute('href') || '';
+    if(href.startsWith('#') && a.closest('nav') === null){
+        e.preventDefault();
+        const route = href.replace('#','') || 'home';
+        if(modalOpen){ showToast('Close the dialog first'); return; }
+        navigateWithFade(route);
+    }
+});
+
+/* keyboard helpers */
+document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape'){
+        if(loginDialogWrap && loginDialogWrap.style.display !== 'none') closeLogin();
+        if(registerDialogWrap && registerDialogWrap.style.display !== 'none') closeRegister();
+    }
+});
+
+/* focus outlines */
+document.addEventListener('focusin', (e)=>{
+    if(e.target.matches('button, a, input, select, textarea')){
+        e.target.style.outline = '3px solid rgba(79,70,229,0.16)';
+        e.target.style.outlineOffset = '2px';
+    }
+});
+document.addEventListener('focusout', (e)=>{
+    if(e.target.matches('button, a, input, select, textarea')){
+        e.target.style.outline = '';
+    }
+});
+
+/* page init */
+window.addEventListener('hashchange', render);
+
+(function init(){
+    const last = localStorage.getItem(LAST_ROUTE_KEY);
+    if(!location.hash && last) location.hash = '#' + last;
+
+})();
+</script>
+<script>
+  // Ensure "state" exists before Firebase tries to use it
+  window.state = window.state || {};
+</script>
+<!-- make sure there is always a global state object -->
+<script>
+  window.state = window.state || {};
+</script>
+
+<!-- Firebase SDK (Compat version for old syntax) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+  // 🔥 Your Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyDdfXE4FZPOiuN3rqXKRmgeNIz_0uV1iB0",
+    authDomain: "albashaer-demo.firebaseapp.com",
+    databaseURL: "https://albashaer-demo-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "albashaer-demo",
+    storageBucket: "albashaer-demo.appspot.com",
+    messagingSenderId: "624073480003",
+    appId: "1:624073480003:web:5e45f0ad83d2c25e3301f6"
+  };
+
+  // 🧩 Initialize Firebase
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // 🌐 Define default state (used if database is empty)
+  const defaultState = {
+    users: {
+      'msmith': { password: 'teacher', role: 'teacher', name: 'Ms. Smith', lastSeenPostTime: 0, subjects: ['math'] },
+      'sally': { password: 'student', role: 'student', name: 'Sally Student', lastSeenPostTime: 0, subjects: [] },
+      'Osama': { password: '2013', role: 'host', name: 'Host', lastSeenPostTime: 0, subjects: [] },
+    
+    },
+    posts: [],
+    files: [],
+    announcements: []
+  };
+
+  // 🧠 State variable (holds app data in memory)
+ // let state = window.state || {};
+  // 💾 Save to Firebase
+  async function saveState() {
+    try {
+      await db.ref("state").set(state);
+      console.log("✅ Saved to Firebase");
+    } catch (e) {
+      console.error("❌ Save error:", e);
+    }
+  }
+
+  // 📥 Load from Firebase or use default if empty
+  async function loadState() {
+    try {
+      const snapshot = await db.ref("state").get();
+      if (snapshot.exists()) {
+        Object.assign(state, snapshot.val());
+        console.log("✅ State loaded from Firebase");
+      } else {
+        console.log("🆕 Database empty — loading default state...");
+        Object.assign(state, JSON.parse(JSON.stringify(defaultState)));
+        await saveState();
+      }
+      
+    } catch (e) {
+      console.error("❌ Load error:", e);
+      Object.assign(state, JSON.parse(JSON.stringify(defaultState)));
+      
+    }
+  }
+
+  // 🔁 Listen for live updates
+  db.ref("state").on("value", snapshot => {
+    if (snapshot.exists()) {
+      Object.assign(state, snapshot.val());
+      
+      console.log("🔁 Synced from Firebase");
+    }
+  });
+
+  // 🟢 Load everything when the page opens
+ window.addEventListener('load', () => {
+  setTimeout(() => {
+    try {
+      loadState();
+    } catch (e) {
+      console.error("loadState error:", e);
+    }
+  }, 1000);
+});
+
+</script>
+
+</body>
+</html>
 
